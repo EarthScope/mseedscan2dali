@@ -1,0 +1,77 @@
+2008.115:
+	- Add count of new bytes to diagnostic message when
+	skipping a file until the next scan due to a bad read.
+
+2008.109:
+	- When miniSEED is not detected for a read from a file
+	from which miniSEED was previously read keep the file in
+	question during subsequent scans.  This should handle a
+	race condition where attributes indicate a file has been
+	modified but the new data is not available when reading.
+
+2000.108:
+	- Use the O_RSYNC flag when opening a file for reading
+	under Solaris (other OSes do not support this flag).
+
+2008.087:
+	- Directory entries are processed in sorted order, add
+	src/edir.[ch] which implement this sorting.
+
+2008.077:
+	- Update libdali to 0.9.4.
+
+2008.075:
+	- Remove redundant write error message.
+	- Add shim function to print libdali messages via lprintf.
+
+2008.074:
+	- Update libdali to 0.9.2.
+
+2008.059:
+	- Add libdali to sources and use it to manage connection to
+	ringserver.
+	- Add -k option to specify keep alive interval.
+	- Add -A option to require server acknowledgements.
+
+2008.056:
+	- Check for existence of base directory before starting the
+	recursive scan and only log an error once per change if the
+	directory cannot be found.
+
+2008.052:
+	- Update DataLink WRITE command syntax.
+
+2008.051:
+	- When writing state file first write to a temporary file and
+	then move the temporary file into place, this avoids partial
+	state file writes when the program is killed while writing.
+
+2008.028:
+	- Change DataLink synchronization bytes to 'DL'.
+
+2008.017:
+	- Add -sz option to sleep between scans only when no records
+	were read during the previous scan.
+	- Reorganize return codes to in processfile() so as to not
+	return -1 when a system call has been interrupted and the stop
+	signal is set.
+	- Create man page for documentation.
+
+2008.003:
+	- Determine absolute path to state file to avoid writing state
+	files in the recursed directories.
+	- Allow the ringserver command line specification to assume
+	"localhost" and port 16000 when they are not specified.
+	- Do not log interrupted system call error messages when the
+	shutdown signal is given.
+
+2007.362:
+	- Use pread(2) instead of read(2) and avoid an extra lseek(2).
+	- Emit appropriate message when a record is detected with an
+	unexpected record length and ignore the file afterwards.
+
+2007.360:
+	- Initial version based on mseedscan2orb 2007.261
+	- Rework sending for DataLink protocol.
+	- Add -1 option to quit after the first scan.
+	
