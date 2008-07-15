@@ -1,3 +1,6 @@
+2008.196:
+	- Update libdali to 1.0.
+
 2008.115:
 	- Add count of new bytes to diagnostic message when
 	skipping a file until the next scan due to a bad read.
