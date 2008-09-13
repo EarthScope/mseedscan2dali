@@ -1,13 +1,14 @@
 2008.256:
 	- Update libdali to 1.1.
 	- Rework sendrecord() to include endtime for new API.
+	- Remove seedutil.[ch] sources and convert usage to libmseed.
 
 2008.196:
 	- Update libdali to 1.0.
 
 2008.115:
-	- Add count of new bytes to diagnostic message when
-	skipping a file until the next scan due to a bad read.
+	- Add count of new bytes to diagnostic message when skipping
+	a file until the next scan due to a bad read.
 
 2008.109:
 	- When miniSEED is not detected for a read from a file
@@ -17,8 +18,8 @@
 	modified but the new data is not available when reading.
 
 2000.108:
-	- Use the O_RSYNC flag when opening a file for reading
-	under Solaris (other OSes do not support this flag).
+	- Use the O_RSYNC flag when opening a file for reading under
+	Solaris (other OSes do not support this flag).
 
 2008.087:
 	- Directory entries are processed in sorted order, add

@@ -14,7 +14,7 @@ LDLIBS  = -lmseed -ldali
 
 BIN  = ../mseedscan2dali
 
-OBJS = rbtree.o stack.o seedutil.o edir.o mseedscan2dali.o
+OBJS = rbtree.o stack.o edir.o mseedscan2dali.o
 
 all: $(BIN)
 

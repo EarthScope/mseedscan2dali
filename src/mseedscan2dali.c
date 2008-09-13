@@ -63,11 +63,10 @@
 
 #include "rbtree.h"
 #include "stack.h"
-#include "seedutil.h"
 #include "edir.h"
 
 #define PACKAGE "mseedscan2dali"
-#define VERSION "2008.196"
+#define VERSION "2008.257"
 
 #define RECSIZE 512
 
@@ -167,6 +166,7 @@ static int scanrecordsread = 0;
 static int scanrecordswritten = 0;
 
 static DLCP *dlconn;
+static MSRecord *gmsr = 0;
 
 
 int
@@ -337,6 +337,9 @@ main (int argc, char** argv)
   /* Save the state file */
   if ( statefile )
     savestate (statefile);
+
+  if ( gmsr )
+    msr_free (&gmsr);
   
   return 0;
 }  /* End of main() */
@@ -752,7 +755,7 @@ processfile (char *filename, FileNode *fnode, off_t newsize, time_t newmodtime)
       scanrecordsread++;
       
       /* Check record for 1000 blockette and verify SEED structure */
-      if ( (detlen = find_reclen (mseedbuf, RECSIZE)) <= 0 )
+      if ( (detlen = ms_find_reclen (mseedbuf, RECSIZE, NULL)) <= 0 )
 	{
 	  /* If no data has ever been read from this file, ignore file */
 	  if ( fnode->offset == 0 )
@@ -1014,47 +1017,27 @@ recoverstate (char *statefile)
 static int
 sendrecord (char *record, int reclen)
 {
-  struct fsdh_s fsdh;
-  MSRecord msr;
-  hptime_t starttime;
   hptime_t endtime;
   char streamid[100];
-  double samprate;
+  int rv;
 
+  /* Parse Mini-SEED header */
+  if ( (rv = msr_unpack (record, reclen, &gmsr, 0, 0)) != MS_NOERROR )
+  {
+    ms_recsrcname (record, streamid, 0);
+    lprintf (0, "Error unpacking %s: %s", streamid, ms_errorstr(rv));
+    return -1;
+  }
+  
   /* Generate stream ID for this record: NET_STA_LOC_CHAN/MSEED */
-  ms_recsrcname (record, streamid, 0);
+  msr_srcname (gmsr, streamid, 0);
   strcat (streamid, "/MSEED");
 
-  msr.fsdh = &fsdh;
-  memcpy (&fsdh, record, sizeof(struct fsdh_s));
-  
-  /* Swap needed values if improbable year value */
-  if ( fsdh.stime.year < 1960 || fsdh.stime.year > 3000 )
-    {
-      MS_SWAPBTIME(&(fsdh.stime));
-      ms_gswpa2 (&(fsdh.numsamples));
-      ms_gswpa2 (&(fsdh.samprate_fact));
-      ms_gswpa2 (&(fsdh.samprate_mult));
+  /* Determine high precision end time */
+  endtime = msr_endtime (gmsr);
 
-      if ( fsdh.stime.year < 1960 || fsdh.stime.year > 3000 )
-        {
-          lprintf (0, "Error, improbable year (%d), likely bad data: %s",
-                   fsdh.stime.year, streamid);
-          return -1;
-        }
-    }
-
-  /* Determine high precision start and end times */
-  starttime = ms_btime2hptime (&stime);
-
-  /* Calculate nominal sample rate, this routine should only use msr->fsdh */
-  samprate = msr_nomsamprate (&msr);
-
-  CHAD, if numsamples == 0 end=start, otherwise if numsamples>0 calc end time with numsamples-1
-  endtime = 
-  
   /* Send record to server */
-  if ( dl_write (dlconn, record, reclen, streamid, starttime, endtime, writeack) < 0 )
+  if ( dl_write (dlconn, record, reclen, streamid, gmsr->starttime, endtime, writeack) < 0 )
     {
       return -1;
     }
