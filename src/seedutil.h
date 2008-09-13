@@ -56,5 +56,6 @@ typedef struct s_blk_1000 {  /* BLOCKETTE 1000 */
 /* Function declarations for routines in seedutil.c */
 
 int find_reclen ( const char *msrecord, int maxheaderlen );
+double calc_samprate ( struct s_fsdh_data *fsdh );
 void swap_2bytes ( unsigned short *a, char f );
 void swap_4bytes ( unsigned int *a, char f );

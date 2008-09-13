@@ -1047,6 +1047,7 @@ sendrecord (char *record, int reclen)
   /* Determine high precision start and end times */
   starttime = ms_btime2hptime (&stime);
 
+  /* Calculate nominal sample rate, this routine should only use msr->fsdh */
   samprate = msr_nomsamprate (&msr);
 
   CHAD, if numsamples == 0 end=start, otherwise if numsamples>0 calc end time with numsamples-1
