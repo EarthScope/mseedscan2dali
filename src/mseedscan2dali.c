@@ -1014,30 +1014,43 @@ recoverstate (char *statefile)
 static int
 sendrecord (char *record, int reclen)
 {
-  struct fsdh_s *fsdh;
-  struct btime_s stime;
+  struct fsdh_s fsdh;
+  MSRecord msr;
   hptime_t starttime;
   hptime_t endtime;
   char streamid[100];
-  
+  double samprate;
+
   /* Generate stream ID for this record: NET_STA_LOC_CHAN/MSEED */
   ms_recsrcname (record, streamid, 0);
   strcat (streamid, "/MSEED");
+
+  msr.fsdh = &fsdh;
+  memcpy (&fsdh, record, sizeof(struct fsdh_s));
   
-  fsdh = (struct fsdh_s *) record;
-  memcpy (&stime, &fsdh->start_time, sizeof(struct btime_s));
-  
-  /* Swap start time values if improbable year value */
-  if ( stime.year < 1960 || stime.year > 3000 )
+  /* Swap needed values if improbable year value */
+  if ( fsdh.stime.year < 1960 || fsdh.stime.year > 3000 )
     {
-      MS_SWAPBTIME(&stime);
+      MS_SWAPBTIME(&(fsdh.stime));
+      ms_gswpa2 (&(fsdh.numsamples));
+      ms_gswpa2 (&(fsdh.samprate_fact));
+      ms_gswpa2 (&(fsdh.samprate_mult));
+
+      if ( fsdh.stime.year < 1960 || fsdh.stime.year > 3000 )
+        {
+          lprintf (0, "Error, improbable year (%d), likely bad data: %s",
+                   fsdh.stime.year, streamid);
+          return -1;
+        }
     }
-  
+
   /* Determine high precision start and end times */
   starttime = ms_btime2hptime (&stime);
 
+  samprate = msr_nomsamprate (&msr);
+
+  CHAD, if numsamples == 0 end=start, otherwise if numsamples>0 calc end time with numsamples-1
   endtime = 
-  CHAD, 
   
   /* Send record to server */
   if ( dl_write (dlconn, record, reclen, streamid, starttime, endtime, writeack) < 0 )
