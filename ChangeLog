@@ -1,3 +1,7 @@
+2008.256:
+	- Update libdali to 1.1.
+	- Rework sendrecord() to include endtime for new API.
+
 2008.196:
 	- Update libdali to 1.0.
 

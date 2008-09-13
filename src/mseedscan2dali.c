@@ -1017,6 +1017,7 @@ sendrecord (char *record, int reclen)
   struct fsdh_s *fsdh;
   struct btime_s stime;
   hptime_t starttime;
+  hptime_t endtime;
   char streamid[100];
   
   /* Generate stream ID for this record: NET_STA_LOC_CHAN/MSEED */
@@ -1032,11 +1033,14 @@ sendrecord (char *record, int reclen)
       MS_SWAPBTIME(&stime);
     }
   
-  /* Determine high precision start time */
+  /* Determine high precision start and end times */
   starttime = ms_btime2hptime (&stime);
+
+  endtime = 
+  CHAD, 
   
   /* Send record to server */
-  if ( dl_write (dlconn, record, reclen, streamid, starttime, writeack) < 0 )
+  if ( dl_write (dlconn, record, reclen, streamid, starttime, endtime, writeack) < 0 )
     {
       return -1;
     }
