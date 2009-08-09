@@ -66,7 +66,7 @@
 #include "edir.h"
 
 #define PACKAGE "mseedscan2dali"
-#define VERSION "2008.257"
+#define VERSION "2009.220"
 
 #define RECSIZE 512
 
@@ -131,6 +131,8 @@ static int   throttlensec = 100;   /* Nanoseconds to sleep after sending record 
 static int   filemaxrecs  = 100;   /* Maximum records to read from each file at a time */
 static int   stateint     = 300;   /* State saving interval in seconds */
 static char *statefile    = 0;     /* State file for saving/restoring time stamps */
+static int   keepalive    = 600;   /* Keep alive interval (idle connection only) */
+static time_t iotime      = 0;     /* Track time of last packet exchange with server */
 static regex_t *fnmatch   = 0;     /* Filename match regex */
 static regex_t *fnreject  = 0;     /* Filename reject regex */
 
@@ -216,6 +218,7 @@ main (int argc, char** argv)
   treq0.tv_nsec = (long) 0;
   
   statetime = time(NULL);
+  iotime = statetime;
   
   if ( iostats )
     iostatscount = iostats;
@@ -269,6 +272,19 @@ main (int argc, char** argv)
       
       if ( stopsig == 0 )
 	{
+	  /* Exchange keep alives */
+	  if ( keepalive && (scantime - iotime) >= keepalive )
+	    {
+	      if ( dl_exchangeIDs (dlconn, 0) )
+		{
+		  lprintf (0, "Error exchanging keep alive packets");
+		  break;
+		}
+	      
+	      while ( iotime < scantime )
+		iotime += keepalive;
+	    }
+	  
 	  /* Prune files that were not found from the filelist */
 	  prunefiles (scantime);
 	  
@@ -817,8 +833,10 @@ processfile (char *filename, FileNode *fnode, off_t newsize, time_t newmodtime)
     fnode->modtime = newmodtime;
   
   if ( reccnt )
-    lprintf (2, "Read %d %d-byte record(s) from %s",
-	     reccnt, RECSIZE, filename);
+    {
+      lprintf (2, "Read %d %d-byte record(s) from %s",
+	       reccnt, RECSIZE, filename);
+    }
   
   return newoffset;
 }  /* End of processfile() */
@@ -1042,6 +1060,8 @@ sendrecord (char *record, int reclen)
       return -1;
     }
   
+  iotime = time(NULL);
+  
   return 0;
 }  /* End of sendrecord() */
 
@@ -1061,7 +1081,6 @@ processparam (int argcount, char **argvec)
   char *matchstr = 0;
   char *rejectstr = 0;
   char *tptr;
-  int keepalive = -1;
   int optind;
   
   /* Process all command line arguments */
@@ -1208,10 +1227,6 @@ processparam (int argcount, char **argvec)
   
   /* Allocate and initialize a new connection description */
   dlconn = dl_newdlcp (address, argvec[0]);
-  
-  /* Set keepalive parameter, allow for valid value of 0 */
-  if ( keepalive >= 0 )
-    dlconn->keepalive = keepalive;
   
   /* Initialize the verbosity for the dl_log function */
   dl_loginit (verbose, &lprintf0, "", &lprintf0, "");

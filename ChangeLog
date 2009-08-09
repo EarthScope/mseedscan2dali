@@ -1,3 +1,7 @@
+2009.220: 
+	- Implement keepalive sending properly by tracking last IO to
+	server and using dl_exchangeIDs().
+
 2008.256:
 	- Update libdali to 1.1.
 	- Rework sendrecord() to include endtime for new API.
