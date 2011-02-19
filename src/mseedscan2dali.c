@@ -66,7 +66,7 @@
 #include "edir.h"
 
 #define PACKAGE "mseedscan2dali"
-#define VERSION "2009.220"
+#define VERSION "2011.049"
 
 #define RECSIZE 512
 
@@ -199,9 +199,9 @@ main (int argc, char** argv)
   sigaction(SIGPIPE, &sa, NULL);
   
   filetree = RBTreeCreate (keycompare, free, free);
-    
+  
   /* Process command line parameters */
-  if (processparam (argc, argv) < 0)
+  if ( processparam (argc, argv) < 0 )
     return 1;
   
   /* Connect to server */
@@ -498,7 +498,7 @@ scanfiles (char *targetdir, char *basedir, int level, time_t scantime)
 	      
 	      /* Log an error if the error is anything but a disconnected link */
 	      if ( errno != ENOENT )
-		lprintf (0, "Cannot stat %s: %s", fkey->filename, strerror(errno));
+		lprintf (0, "Cannot stat (linked) %s: %s", fkey->filename, strerror(errno));
 	      else
 		continue;
 	    }
@@ -582,11 +582,9 @@ scanfiles (char *targetdir, char *basedir, int level, time_t scantime)
 	  fnode->idledelay = (idledelay > 0) ? (idledelay-1) : 0;
 	}
       
-      /* Process (read records from) the file if it's modification time has increased,
-	 it's size has increased and is not marked for permanent skipping */
-      if ( fnode->modtime < st.st_mtime &&
-	   fnode->offset < st.st_size &&
-	   fnode->offset != -1 )
+      /* Process (read records from) the file if it's size has increased and
+       * is not marked for permanent skipping */
+      if ( fnode->offset < st.st_size && fnode->offset != -1 )
 	{
 	  /* Increment files read counter */
 	  if ( iostats )
@@ -771,7 +769,7 @@ processfile (char *filename, FileNode *fnode, off_t newsize, time_t newmodtime)
       scanrecordsread++;
       
       /* Check record for 1000 blockette and verify SEED structure */
-      if ( (detlen = ms_find_reclen (mseedbuf, RECSIZE, NULL)) <= 0 )
+      if ( (detlen = ms_detect (mseedbuf, RECSIZE)) <= 0 )
 	{
 	  /* If no data has ever been read from this file, ignore file */
 	  if ( fnode->offset == 0 )
