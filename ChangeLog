@@ -1,5 +1,5 @@
 2011.049:
-	- Update libmseed to 2.6.
+	- Update libmseed to 2.6 release candidate.
 	- Update libdali to 1.4.
 	- Remove file modification time check from update check, files
 	will be processed if they have increased in size. Avoids skipping
