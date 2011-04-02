@@ -66,7 +66,7 @@
 #include "edir.h"
 
 #define PACKAGE "mseedscan2dali"
-#define VERSION "2011.049"
+#define VERSION "2011.092"
 
 #define RECSIZE 512
 

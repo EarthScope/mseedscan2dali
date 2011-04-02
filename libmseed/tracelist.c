@@ -5,7 +5,7 @@
  *
  * Written by Chad Trabant, IRIS Data Management Center
  *
- * modified: 2010.047
+ * modified: 2011.055
  ***************************************************************************/
 
 #include <stdio.h>
@@ -669,7 +669,7 @@ mstl_addmsrtoseg (MSTraceSeg *seg, MSRecord *msr, hptime_t endtime, flag whence)
   
   if ( ! seg || ! msr )
     return 0;
-  
+
   /* Allocate more memory for data samples if included */
   if ( msr->datasamples && msr->numsamples > 0 )
     {
@@ -691,6 +691,8 @@ mstl_addmsrtoseg (MSTraceSeg *seg, MSRecord *msr, hptime_t endtime, flag whence)
 	  ms_log (2, "mstl_addmsrtoseg(): Error allocating memory\n");
 	  return 0;
 	}
+      
+      seg->datasamples = newdatasamples;
     }
   
   /* Add coverage to end of segment */
@@ -774,6 +776,8 @@ mstl_addsegtoseg (MSTraceSeg *seg1, MSTraceSeg *seg2)
 	  ms_log (2, "mstl_addsegtoseg(): Error allocating memory\n");
 	  return 0;
 	}
+      
+      seg1->datasamples = newdatasamples;
     }
   
   /* Add seg2 coverage to end of seg1 */

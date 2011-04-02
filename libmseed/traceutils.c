@@ -29,7 +29,7 @@ static int mst_groupsort_cmp ( MSTrace *mst1, MSTrace *mst2, flag quality );
 MSTrace *
 mst_init ( MSTrace *mst )
 {
-  /* Free datasamples if present */
+  /* Free datasamples, prvtptr and stream state if present */
   if ( mst )
     {
       if ( mst->datasamples )
@@ -37,7 +37,7 @@ mst_init ( MSTrace *mst )
 
       if ( mst->prvtptr )
 	free (mst->prvtptr);
-
+      
       if ( mst->ststate )
         free (mst->ststate);
     }

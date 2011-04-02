@@ -1,4 +1,10 @@
-2011.042: 2.6
+2011.056: 2.6
+	- Fix handling of sample data in internal MSTraceList routines.
+	- Cleanup WIN32 defines, make MSVC and Open Watcom play nicely.
+	- Default data byte order to big endian when blockette 1000 contains
+	invalid byte order value, previously defaulted to host byte order.
+
+2011.042: 
 	- Update libmseed.def to match current libmseed.h declaractions.
 	- Cleanup to avoid MSVC warnings.
 
