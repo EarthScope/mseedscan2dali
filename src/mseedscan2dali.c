@@ -66,7 +66,7 @@
 #include "edir.h"
 
 #define PACKAGE "mseedscan2dali"
-#define VERSION "2011.092"
+#define VERSION "2011.118"
 
 #define RECSIZE 512
 
@@ -107,6 +107,20 @@ typedef struct dirfile {
   char filename[MAX_FILENAME_LENGTH];
   time_t modtime;
 } DirFile;
+
+/* Macro to test for 48 zeros */
+#define ZERO48(X) ( (*(X+0)=='\0')&&(*(X+1)=='\0')&&(*(X+2)=='\0')&&(*(X+3)=='\0') && \
+		    (*(X+4)=='\0')&&(*(X+5)=='\0')&&(*(X+6)=='\0')&&(*(X+7)=='\0') && \
+		    (*(X+8)=='\0')&&(*(X+9)=='\0')&&(*(X+10)=='\0')&&(*(X+11)=='\0') && \
+		    (*(X+12)=='\0')&&(*(X+13)=='\0')&&(*(X+14)=='\0')&&(*(X+15)=='\0') && \
+		    (*(X+16)=='\0')&&(*(X+17)=='\0')&&(*(X+18)=='\0')&&(*(X+19)=='\0') && \
+		    (*(X+20)=='\0')&&(*(X+21)=='\0')&&(*(X+22)=='\0')&&(*(X+23)=='\0') && \
+		    (*(X+24)=='\0')&&(*(X+25)=='\0')&&(*(X+26)=='\0')&&(*(X+27)=='\0') && \
+		    (*(X+28)=='\0')&&(*(X+29)=='\0')&&(*(X+30)=='\0')&&(*(X+31)=='\0') && \
+		    (*(X+32)=='\0')&&(*(X+33)=='\0')&&(*(X+34)=='\0')&&(*(X+35)=='\0') && \
+		    (*(X+36)=='\0')&&(*(X+37)=='\0')&&(*(X+38)=='\0')&&(*(X+39)=='\0') && \
+		    (*(X+40)=='\0')&&(*(X+41)=='\0')&&(*(X+42)=='\0')&&(*(X+43)=='\0') && \
+		    (*(X+44)=='\0')&&(*(X+45)=='\0')&&(*(X+46)=='\0')&&(*(X+47)=='\0') )
 
 
 static DirLink *dirlist   = 0;     /* Base directories for file scanning */
@@ -778,6 +792,14 @@ processfile (char *filename, FileNode *fnode, off_t newsize, time_t newmodtime)
 		       filename, (long long) (newoffset - nread));
 	      close (fd);
 	      return -1;
+	    }
+	  /* Check for zeros in first 48 bytes, skip record */
+	  else if ( ZERO48(mseedbuf) )
+	    {
+	      lprintf (0, "%s: Found zeros at offset %lld (new bytes %lld), skipping %d bytes",
+		       filename, (long long) (newoffset - nread),
+		       (long long ) (newsize - newoffset + nread), RECSIZE);
+	      continue;
 	    }
 	  /* Otherwise, if records have been read, skip until next scan */
 	  else
