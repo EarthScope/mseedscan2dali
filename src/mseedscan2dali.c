@@ -66,7 +66,7 @@
 #include "edir.h"
 
 #define PACKAGE "mseedscan2dali"
-#define VERSION "2011.118"
+#define VERSION "2011.141"
 
 #define RECSIZE 512
 
@@ -754,7 +754,7 @@ processfile (char *filename, FileNode *fnode, off_t newsize, time_t newmodtime)
     }
   
   /* Read RECSIZE byte chunks off the end of the file */
-  while ( (newsize - newoffset) >= RECSIZE )
+  while ( (newsize - newoffset) >= RECSIZE && stopsig == 0 )
     {
       /* Jump out if we've read the maximum allowed number of records
 	 from this file for this scan */

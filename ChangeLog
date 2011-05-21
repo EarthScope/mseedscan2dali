@@ -1,3 +1,6 @@
+2011.141:
+	Check for stop signal while looping through records in a file.
+
 2011.118:
 	- Add check for blocks of zeros in the input files and skip them
 	instead of attempting to read them on the next scan.
