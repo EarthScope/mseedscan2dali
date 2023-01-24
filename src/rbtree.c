@@ -1,6 +1,6 @@
 /***************************************************************************
  * rbtree.h:
- * 
+ *
  * Red-Black Tree routines, imlements balanced tree data structures.
  *
  * The code base was originally written by Emin Marinian:
@@ -27,10 +27,10 @@ void *
 SafeMalloc (size_t size)
 {
   void * result;
-  
+
   if ( ! (result = malloc(size)) )
     printf ("memory overflow: malloc failed in SafeMalloc.");
-  
+
   return (result);
 }
 
@@ -57,12 +57,12 @@ RBTreeCreate ( int (*CompareFunc) (const void*, const void*),
 {
   RBTree *newTree;
   RBNode *temp;
-  
+
   newTree=(RBTree*) SafeMalloc (sizeof(RBTree));
   newTree->Compare = CompareFunc;
   newTree->DestroyKey = DestroyKeyFunc;
   newTree->DestroyData = DestroyDataFunc;
-  
+
   /*  see the comment in the RBTree structure in rbtree.h */
   /*  for information on nil and root */
   temp=newTree->nil = (RBNode*) SafeMalloc (sizeof(RBNode));
@@ -70,13 +70,13 @@ RBTreeCreate ( int (*CompareFunc) (const void*, const void*),
   temp->red = 0;
   temp->data = 0;
   temp->key = 0;
-  
+
   temp = newTree->root = (RBNode*) SafeMalloc (sizeof(RBNode));
   temp->parent = temp->left = temp->right = newTree->nil;
   temp->key = 0;
   temp->data = 0;
   temp->red = 0;
-  
+
   return(newTree);
 }
 
@@ -102,14 +102,14 @@ LeftRotate (RBTree *tree, RBNode *x)
 {
   RBNode *y;
   RBNode *nil = tree->nil;
-  
+
   y = x->right;
   x->right = y->left;
-  
+
   if (y->left != nil) y->left->parent = x;
-  
+
   y->parent = x->parent;
-  
+
   /* instead of checking if x->parent is the root as in the book, we */
   /* count on the root sentinel to implicitly take care of this case */
   if ( x == x->parent->left )
@@ -147,12 +147,12 @@ RightRotate (RBTree *tree, RBNode *y)
 {
   RBNode *x;
   RBNode *nil = tree->nil;
-  
+
   x = y->left;
   y->left = x->right;
 
   if (nil != x->right)  x->right->parent = y;
-  
+
   x->parent = y->parent;
 
   /* instead of checking if x->parent is the root as in the book, we */
@@ -192,7 +192,7 @@ TreeInsertHelp (RBTree *tree, RBNode *z)
   RBNode *x;
   RBNode *y;
   RBNode *nil = tree->nil;
-  
+
   z->left = z->right=nil;
   y = tree->root;
   x = tree->root->left;
@@ -211,12 +211,12 @@ TreeInsertHelp (RBTree *tree, RBNode *z)
     }
 
   z->parent = y;
- 
+
   if ( (y == tree->root) ||
        (1 == tree->Compare (y->key, z->key)))  /* y.key > z.key */
     {
       y->left = z;
-    } 
+    }
   else
     {
       y->right = z;
@@ -303,9 +303,9 @@ RBTreeInsert (RBTree *tree, void *key, void *data)
 	    }
 	}
     }
-  
+
   tree->root->left->red = 0;
-  
+
   return (newNode);
 }
 
@@ -331,9 +331,9 @@ RBFind (RBTree *tree, void *key)
   int compVal;
 
   if ( x == nil ) return (0);
-  
+
   compVal = tree->Compare (x->key, key);
-  
+
   while ( compVal != 0 )  /*assignemnt*/
     {
       if ( compVal == 1 ) /* x->key > key */
@@ -344,9 +344,9 @@ RBFind (RBTree *tree, void *key)
 	{
 	  x = x->right;
 	}
-      
+
       if ( x == nil) return(0);
-      
+
       compVal = tree->Compare (x->key, key);
     }
 
@@ -355,7 +355,7 @@ RBFind (RBTree *tree, void *key)
 
 
 /***********************************************************************
- *  FUNCTION:  TreeSuccessor 
+ *  FUNCTION:  TreeSuccessor
  *
  *    INPUTS:  tree is the tree in question, and node is the node we want the
  *             the successor of.
@@ -373,7 +373,7 @@ TreeSuccessor (RBTree *tree, RBNode *node)
   RBNode *y;
   RBNode *nil = tree->nil;
   RBNode *root = tree->root;
-  
+
   if (nil != (y = node->right)) /* assignment to y is intentional */
     {
       while (y->left != nil)  /* returns the minium of the right subtree of node */
@@ -385,22 +385,22 @@ TreeSuccessor (RBTree *tree, RBNode *node)
   else
     {
       y = node->parent;
-      
+
       while (node == y->right)   /* sentinel used instead of checking for nil */
 	{
 	  node = y;
 	  y = y->parent;
 	}
-      
+
       if (y == root) return (nil);
-      
+
       return(y);
     }
 }
 
 
 /***********************************************************************
- *  FUNCTION:  TreePredecessor 
+ *  FUNCTION:  TreePredecessor
  *
  *    INPUTS:  tree is the tree in question, and node is the node we want the
  *             the predecessor of.
@@ -418,7 +418,7 @@ TreePredecessor (RBTree *tree, RBNode *node)
   RBNode *y;
   RBNode *nil = tree->nil;
   RBNode *root = tree->root;
-  
+
   if (nil != (y = node->left)) /* assignment to y is intentional */
     {
       while (y->right != nil)  /* returns the maximum of the left subtree of node */
@@ -433,8 +433,8 @@ TreePredecessor (RBTree *tree, RBNode *node)
       y = node->parent;
 
       while (node == y->left)
-	{ 
-	  if (y == root) return (nil); 
+	{
+	  if (y == root) return (nil);
 	  node = y;
 	  y = y->parent;
 	}
@@ -449,7 +449,7 @@ TreePredecessor (RBTree *tree, RBNode *node)
  *
  *    INPUTS:  tree is the tree to destroy and node is the current node
  *
- *    OUTPUT:  none 
+ *    OUTPUT:  none
  *
  *    EFFECTS:  This function recursively destroys the nodes of the tree
  *              postorder using the DestroyKey and DestroyData functions.
@@ -462,7 +462,7 @@ void
 TreeDestHelper (RBTree *tree, RBNode *node)
 {
   RBNode *nil = tree->nil;
-  
+
   if (node != nil)
     {
       TreeDestHelper (tree, node->left);
@@ -515,7 +515,7 @@ RBDeleteFixUp (RBTree *tree, RBNode *node)
 {
   RBNode *root = tree->root->left;
   RBNode *w;
-  
+
   while ( (!node->red) && (node != root) )
     {
       if (node == node->parent->left)
@@ -528,9 +528,9 @@ RBDeleteFixUp (RBTree *tree, RBNode *node)
 	      LeftRotate (tree, node->parent);
 	      w = node->parent->right;
 	    }
-	  
+
 	  if ( (!w->right->red) && (!w->left->red) )
-	    { 
+	    {
 	      w->red = 1;
 	      node = node->parent;
 	    }
@@ -543,7 +543,7 @@ RBDeleteFixUp (RBTree *tree, RBNode *node)
 		  RightRotate (tree, w);
 		  w = node->parent->right;
 		}
-	      
+
 	      w->red = node->parent->red;
 	      node->parent->red = 0;
 	      w->right->red = 0;
@@ -561,9 +561,9 @@ RBDeleteFixUp (RBTree *tree, RBNode *node)
 	      RightRotate (tree, node->parent);
 	      w = node->parent->left;
 	    }
-	  
+
 	  if ( (!w->right->red) && (!w->left->red) )
-	    { 
+	    {
 	      w->red = 1;
 	      node = node->parent;
 	    }
@@ -612,7 +612,7 @@ RBDelete (RBTree *tree, RBNode *node)
   RBNode *x;
   RBNode *nil = tree->nil;
   RBNode *root = tree->root;
-  
+
   y = ((node->left == nil) || (node->right == nil)) ? node : TreeSuccessor (tree, node);
   x = (y->left == nil) ? y->right : y->left;
 
@@ -635,9 +635,9 @@ RBDelete (RBTree *tree, RBNode *node)
   if (y != node) /* y should not be nil in this case */
     {
       /* y is the node to splice out and x is its child */
-      
+
       if (!(y->red)) RBDeleteFixUp (tree, x);
-      
+
       tree->DestroyKey (node->key);
       tree->DestroyData (node->data);
       y->left = node->left;
@@ -654,7 +654,7 @@ RBDelete (RBTree *tree, RBNode *node)
 	{
 	  node->parent->right = y;
 	}
-      free (node); 
+      free (node);
     }
   else
     {
@@ -680,9 +680,9 @@ RBTraverseHelper (RBTree *tree, RBNode *node, void (*NodeFunc)(RBNode*))
   if (node != tree->nil)
     {
       RBTraverseHelper (tree, node->left, NodeFunc);
-      
+
       NodeFunc (node);
-      
+
       RBTraverseHelper (tree, node->right, NodeFunc);
     }
 }
@@ -706,9 +706,9 @@ RBBuildStackHelper (RBTree *tree, RBNode *node, Stack *stack)
   if (node != tree->nil)
     {
       RBBuildStackHelper (tree, node->right, stack);
-      
+
       StackPush (stack, node);
-      
+
       RBBuildStackHelper (tree, node->left, stack);
     }
 }
@@ -725,7 +725,7 @@ RBBuildStack (RBTree *tree, Stack *stack)
  *
  *    INPUTS:  tree is the tree to print and node is the current inorder node
  *
- *    OUTPUT:  none 
+ *    OUTPUT:  none
  *
  *    EFFECTS: This function recursively prints the nodes of the tree
  *             inorder using the PrintKey and PrintData functions.
@@ -741,7 +741,7 @@ RBTreePrintNode (RBTree *tree, RBNode *node,
 {
   RBNode *nil = tree->nil;
   RBNode *root = tree->root;
-  
+
   if (node != tree->nil)
     {
       RBTreePrintNode (tree, node->left, PrintKey, PrintData);
@@ -768,7 +768,7 @@ RBTreePrintNode (RBTree *tree, RBNode *node,
  *
  *    OUTPUT:  none
  *
- *    EFFECT:  This function recursively prints the nodes of the tree 
+ *    EFFECT:  This function recursively prints the nodes of the tree
  *             inorder using the PrintKey and PrintData functions.
  ***********************************************************************/
 void

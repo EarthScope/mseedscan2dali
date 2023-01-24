@@ -1,6 +1,6 @@
 /***************************************************************************
  * stack.c:
- * 
+ *
  * Simple stack routines.
  *
  * The code base was originally written by Emin Marinian:
@@ -19,7 +19,7 @@ Stack *
 StackCreate()
 {
   Stack * newStack;
-  
+
   newStack = (Stack *) malloc (sizeof(Stack));
   newStack->top = newStack->tail=NULL;
   return (newStack);
@@ -75,7 +75,7 @@ StackDestroy (Stack * theStack, void DestFunc(void * a))
 {
   StackNode * x = theStack->top;
   StackNode * y;
-  
+
   if (theStack)
     {
       while (x)
