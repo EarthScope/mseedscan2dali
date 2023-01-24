@@ -3,83 +3,105 @@
 # environment variables:
 #   CC : Specify the C compiler to use
 #   CFLAGS : Specify compiler options to use
+#   LDFLAGS : Specify linker options to use
+#   CPPFLAGS : Specify c-preprocessor options to use
 
-# Options specific for GCC
-GCC = gcc
-GCCFLAGS = -O2 -Wall -fPIC
+# Extract version from libmseed.h, expected line should include LIBMSEED_VERSION "#.#.#"
+MAJOR_VER = $(shell grep LIBMSEED_VERSION libmseed.h | grep -Eo '[0-9]+.[0-9]+.[0-9]+' | cut -d . -f 1)
+FULL_VER = $(shell grep LIBMSEED_VERSION libmseed.h | grep -Eo '[0-9]+.[0-9]+.[0-9]+')
+COMPAT_VER = $(MAJOR_VER).0.0
 
-LIB_OBJS = fileutils.o genutils.o gswap.o lmplatform.o lookup.o \
-           msrutils.o pack.o packdata.o traceutils.o tracelist.o \
-           parseutils.o unpack.o unpackdata.o selection.o logging.o
+# Default settings for install target
+PREFIX ?= /usr/local
+EXEC_PREFIX ?= $(PREFIX)
+LIBDIR ?= $(EXEC_PREFIX)/lib
+INCLUDEDIR ?= $(PREFIX)/include
+DATAROOTDIR ?= $(PREFIX)/share
+DOCDIR ?= $(DATAROOTDIR)/doc/libmseed
+MANDIR ?= $(DATAROOTDIR)/man
+MAN3DIR ?= $(MANDIR)/man3
 
-MAJOR_VER = 2
-MINOR_VER = 6
-CURRENT_VER = $(MAJOR_VER).$(MINOR_VER)
-COMPAT_VER = $(MAJOR_VER).$(MINOR_VER)
+LIB_SRCS = fileutils.c genutils.c gswap.c lmplatform.c lookup.c \
+           msrutils.c pack.c packdata.c traceutils.c tracelist.c \
+           parseutils.c unpack.c unpackdata.c selection.c logging.c
 
-LIB_A = libmseed.a
-LIB_SO_FILENAME = libmseed.so
-LIB_SO_ALIAS = $(LIB_SO_FILENAME).$(MAJOR_VER)
-LIB_SO = $(LIB_SO_FILENAME).$(CURRENT_VER)
-LIB_DYN_ALIAS = libmseed.dylib
-LIB_DYN = libmseed.$(CURRENT_VER).dylib
+LIB_OBJS = $(LIB_SRCS:.c=.o)
+LIB_LOBJS = $(LIB_SRCS:.c=.lo)
+
+LIB_NAME = libmseed
+LIB_A = $(LIB_NAME).a
+
+OS := $(shell uname -s)
+
+# Build dynamic (.dylib) on macOS/Darwin, otherwise shared (.so)
+ifeq ($(OS), Darwin)
+	LIB_SO_BASE = $(LIB_NAME).dylib
+	LIB_SO_MAJOR = $(LIB_NAME).$(MAJOR_VER).dylib
+	LIB_SO = $(LIB_NAME).$(FULL_VER).dylib
+	LIB_OPTS = -dynamiclib -compatibility_version $(COMPAT_VER) -current_version $(FULL_VER) -install_name $(LIB_SO)
+else
+	LIB_SO_BASE = $(LIB_NAME).so
+	LIB_SO_MAJOR = $(LIB_NAME).so.$(MAJOR_VER)
+	LIB_SO = $(LIB_NAME).so.$(FULL_VER)
+	LIB_OPTS = -shared -Wl,--version-script=libmseed.map -Wl,-soname,$(LIB_SO_MAJOR)
+endif
 
 all: static
 
 static: $(LIB_A)
 
-shared: gcc $(LIB_SO)
+shared dynamic: $(LIB_SO)
 
-dynamic: gcc $(LIB_DYN)
-
+# Build static library
 $(LIB_A): $(LIB_OBJS)
-	rm -f $(LIB_A)
-	ar -csq $(LIB_A) $(LIB_OBJS)
+	@echo "Building static library $(LIB_A)"
+	$(RM) -f $(LIB_A)
+	$(AR) -crs $(LIB_A) $(LIB_OBJS)
 
-$(LIB_SO): $(LIB_OBJS)
-	rm -f $(LIB_SO) $(LIB_SO_FILENAME)
-	$(GCC) $(GCCFLAGS) -shared -Wl,-soname -Wl,$(LIB_SO_ALIAS) -o $(LIB_SO) $(LIB_OBJS)
-	ln -s $(LIB_SO) $(LIB_SO_FILENAME)
+# Build shared/dynamic library
+$(LIB_SO): $(LIB_LOBJS)
+	@echo "Building shared library $(LIB_SO)"
+	$(RM) -f $(LIB_SO) $(LIB_SO_MAJOR) $(LIB_SO_BASE)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LIB_OPTS) -o $(LIB_SO) $(LIB_LOBJS)
+	ln -s $(LIB_SO) $(LIB_SO_BASE)
+	ln -s $(LIB_SO) $(LIB_SO_MAJOR)
 
-$(LIB_DYN): $(LIB_OBJS)
-	rm -f $(LIB_DYN) $(LIB_DYN_ALIAS)
-	$(GCC) $(GCCFLAGS) -dynamiclib -compatibility_version $(COMPAT_VER) -current_version $(CURRENT_VER) -install_name $(LIB_DYN_ALIAS) -o $(LIB_DYN) $(LIB_OBJS)
-	ln -sf $(LIB_DYN) $(LIB_DYN_ALIAS)
+test check: static FORCE
+	@$(MAKE) -C test test
 
 clean:
-	rm -f $(LIB_OBJS) $(LIB_A) $(LIB_SO) $(LIB_SO_ALIAS) $(LIB_DYN) $(LIB_DYN_ALIAS)
+	$(RM) $(LIB_OBJS) $(LIB_LOBJS) $(LIB_A) $(LIB_SO) $(LIB_SO_MAJOR) $(LIB_SO_BASE) 
+	@$(MAKE) -C test clean
+	@echo "All clean."
 
-cc:
-	@$(MAKE) "CC=$(CC)" "CFLAGS=$(CFLAGS)"
+install: shared
+	@echo "Installing into $(PREFIX)"
+	@mkdir -p $(DESTDIR)$(PREFIX)/include
+	@cp libmseed.h $(DESTDIR)$(PREFIX)/include
+	@mkdir -p $(DESTDIR)$(LIBDIR)/pkgconfig
+	@cp -a $(LIB_SO_BASE) $(LIB_SO_MAJOR) $(LIB_SO_NAME) $(LIB_SO) $(DESTDIR)$(LIBDIR)
+	@sed -e 's|@prefix@|$(PREFIX)|g' \
+	     -e 's|@exec_prefix@|$(EXEC_PREFIX)|g' \
+	     -e 's|@libdir@|$(LIBDIR)|g' \
+	     -e 's|@includedir@|$(PREFIX)/include|g' \
+	     -e 's|@PACKAGE_NAME@|libmseed|g' \
+	     -e 's|@PACKAGE_URL@|http://ds.iris.edu/ds/nodes/dmc/software/downloads/libmseed/|g' \
+	     -e 's|@VERSION@|$(FULL_VER)|g' \
+	     mseed.pc.in > $(DESTDIR)$(LIBDIR)/pkgconfig/mseed.pc
+	@mkdir -p $(DESTDIR)$(DOCDIR)/example
+	@cp -r example $(DESTDIR)$(DOCDIR)/
+	@cp doc/libmseed-UsersGuide $(DESTDIR)$(DOCDIR)/
+	@mkdir -p $(DESTDIR)$(MAN3DIR)
+	@cp -a doc/ms*.3 $(DESTDIR)$(MAN3DIR)/
 
-gcc:
-	@$(MAKE) "CC=$(GCC)" "CFLAGS=$(GCCFLAGS)"
+.SUFFIXES: .c .o .lo
 
-gcc32:
-	@$(MAKE) "CC=$(GCC)" "CFLAGS=-m32 $(GCCFLAGS)"
+# Standard object building
+.c.o:
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-gcc64:
-	@$(MAKE) "CC=$(GCC)" "CFLAGS=-m64 $(GCCFLAGS)"
+# Standard object building for shared library using -fPIC
+.c.lo:
+	$(CC) $(CPPFLAGS) $(CFLAGS) -fPIC -c $< -o $@
 
-debug:
-	$(MAKE) "CC=$(CC)" "CFLAGS=-g $(CFLAGS)"
-
-gccdebug:
-	$(MAKE) "CC=$(GCC)" "CFLAGS=-g $(GCCFLAGS)"
-
-gcc32debug:
-	$(MAKE) "CC=$(GCC)" "CFLAGS=-g -m32 $(GCCFLAGS)"
-
-gcc64debug:
-	$(MAKE) "CC=$(GCC)" "CFLAGS=-g -m64 $(GCCFLAGS)"
-
-gcc32gprof:
-	$(MAKE) "CC=$(GCC)" "CFLAGS=-pg -m32 $(GCCFLAGS)"
-
-gcc64gprof:
-	$(MAKE) "CC=$(GCC)" "CFLAGS=-pg -m64 $(GCCFLAGS)"
-
-install:
-	@echo
-	@echo "No install target, copy the library and header yourself"
-	@echo
+FORCE:
