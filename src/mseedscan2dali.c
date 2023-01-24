@@ -482,6 +482,7 @@ scanfiles (char *targetdir, char *basedir, int level, time_t scantime)
 	    {
 	      fnode->scantime = scantime;
 	      continue;
+            }
 
 	  /* Check if file has triggered a delayed check */
 	  if ( fnode->idledelay > 0 )
