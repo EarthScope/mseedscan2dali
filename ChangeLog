@@ -1,4 +1,5 @@
 2023.023:
+	- Reduce verbosity for "Reading list of directories" message.
 	- Update libdali to 1.8.
 	- Update libmseed to 2.19.8.
 

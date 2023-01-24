@@ -66,7 +66,7 @@
 #include "edir.h"
 
 #define PACKAGE "mseedscan2dali"
-#define VERSION "2011.141"
+#define VERSION "2023.023"
 
 #define RECSIZE 512
 
@@ -1491,7 +1491,7 @@ processdirfile (char *filename)
       return;
     }
 
-  lprintf (2, "Reading list of directories from %s", filename);
+  lprintf (1, "Reading list of directories from %s", filename);
 
   while ( fgets (dirlistent, sizeof(dirlistent), fp) )
     {
