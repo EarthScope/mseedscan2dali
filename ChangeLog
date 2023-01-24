@@ -1,5 +1,8 @@
+2023.023:
+	- Update libdali to 1.8.
+
 2011.141:
-	Check for stop signal while looping through records in a file.
+	- Check for stop signal while looping through records in a file.
 
 2011.118:
 	- Add check for blocks of zeros in the input files and skip them
