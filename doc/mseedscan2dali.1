@@ -1,6 +1,6 @@
 .TH MSEEDSCAN2DALI 1 2008/01/17
 .SH NAME
-mseedscan2dali \- Scan Mini-SEED files and send to DataLink server
+mseedscan2dali \- Scan miniSEED files and send to DataLink server
 .SH SYNOPSIS
 .nf
 mseedscan2dali [options] [-d dir] ... ORB
@@ -8,7 +8,7 @@ mseedscan2dali [options] [-d dir] ... ORB
 .fi
 .SH DESCRIPTION
 \fBmseedscan2dali\fP recursively scans directories and sends any
-Mini-SEED data records it finds to a DataLink server.  During each
+miniSEED data records it finds to a DataLink server.  During each
 pass of the directory tree new files are discovered and previously
 seen files are checked for appended records.
 
@@ -80,7 +80,7 @@ description of quiet files.
 
 .IP "-T \fInsecs\fR"
 Specify the number of nanoseconds to sleep after sending each
-Mini-SEED record to the ORB, default is 100 nanoseconds.
+miniSEED record to the ORB, default is 100 nanoseconds.
 
 .IP "-f \fImax\fR"
 Specify the maximum number of records to read from a give file during
@@ -124,7 +124,7 @@ might be growing (i.e. data records are being appended).  The program
 will not perform any kind of sorting, data records are forwarded as
 the files they are contained in are discovered.  In order to feed data
 in time-order to the ringserver the program must discover the files in
-the proper order.  In a real-time collection system writing Mini-SEED
+the proper order.  In a real-time collection system writing miniSEED
 files as the data is collected this characteristic is a natural
 coincidence.
 
@@ -134,7 +134,7 @@ time are considered idle or quiet.  The idle files will not be checked
 on every scan, instead a specified number of scans will be skipped for
 each idle file.  The quiet files will never be checked ever again.
 
-Any files discovered that did not contain any Mini-SEED records are
+Any files discovered that did not contain any miniSEED records are
 logged and the file is ignored during any subsequent scans.
 
 Broken symbolic links are quietly skipped.  If they are eventually
@@ -142,7 +142,7 @@ re-connected to something the something will be scanned as expected.
 
 The directory separator is assumed to be '/'.
 
-Currently, this program will only work with 512-byte Mini-SEED
+Currently, this program will only work with 512-byte miniSEED
 records.
 
 Upon receiving a SIGUSR1 signal the program will print the current
